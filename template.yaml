@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM app with Lambda function and function URL
+
+Globals:
+  Function:
+    Timeout: 300
+    Runtime: python3.11
+
+Resources:
+  GmailAccessFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: gmail_access/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+      FunctionUrlConfig:
+        AuthType: NONE
+
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: gmail-access-dependencies
+      Description: Dependencies for Gmail Access function
+      ContentUri: layer/
+      CompatibleRuntimes:
+        - python3.11
+    Metadata:
+      BuildMethod: python3.11
+      BuildArchitecture: x86_64
+
+Outputs:
+  GmailAccessFunctionUrl:
+    Description: "Gmail Access Function URL"
+    Value: !GetAtt GmailAccessFunctionUrl.FunctionUrl
